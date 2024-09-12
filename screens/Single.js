@@ -20,35 +20,31 @@ const Single = ({ navigation, route }) => {
   const movie = route.params.movie;
   const [showmovie, setShowMovie] = useState(null); // Initialize as null
   const [gener, setgener] = useState([]);
+  const fetchallGener = async () => {
+    try {
+      const first = await axios.get(
+        "https://api.themoviedb.org/3/genre/movie/list?api_key=a821e8312d05800932b970819ca1ecfb"
+      );
+      const send = await axios.get(
+        "https://api.themoviedb.org/3/genre/tv/list?api_key=a821e8312d05800932b970819ca1ecfb"
+      );
 
+      setgener([...first.data.genres, ...send.data.genres]);
+      //   console.log(gener);
+    } catch (err) {
+      console.error(err);
+    }
+  };
   useEffect(() => {
     setShowMovie(movie); // Set the movie details to state
-    axios
-      .get(
-        "https://api.themoviedb.org/3/genre/movie/list?api_key=a821e8312d05800932b970819ca1ecfb"
-      )
-      .then((data) => {
-        setgener([...gener, ...data.data.genres]);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-    axios
-      .get(
-        "https://api.themoviedb.org/3/genre/tv/list?api_key=a821e8312d05800932b970819ca1ecfb"
-      )
-      .then((data) => {
-        setgener([...gener, ...data.data.genres]);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
+    fetchallGener();
   }, [movie]);
   const getGenreNames = (genreIds) => {
-    if (!genres.length) return []; // No genres available yet
+    // console.log(gener);
+    if (!gener.length) return []; // No genres available yet
     return genreIds.map((id) => {
       const genre = gener.find((g) => g.id === id); // Find matching genre
-      return genre ? genre.name : "Unknown Genre"; // Fallback for missing genre
+      return genre ? genre.name : ""; // Fallback for missing genre
     });
   };
 
@@ -84,13 +80,7 @@ const Single = ({ navigation, route }) => {
                 {showmovie?.original_title || showmovie?.original_name}
               </Text>
               <Text style={styles.genre}>
-                {gener.map((ele) => {
-                  if (ele.id == showmovie?.genre_ids?.[0]) {
-                    return `${ele.name}`;
-                  } else {
-                    return " ";
-                  }
-                }) || "Unknown Genre"}
+                {getGenreNames(showmovie.genre_ids)[0]}{" "}
                 {showmovie?.vote_average}
               </Text>
             </View>
@@ -113,7 +103,7 @@ const Single = ({ navigation, route }) => {
           </Text>
           <Text style={styles.description}>{showmovie?.overview}</Text>
           <Text style={styles.genres}>
-            {getGenreNames(showMovie.genre_ids).join(", ")}
+            {getGenreNames(showmovie.genre_ids).join(", ")}
           </Text>
         </ScrollView>
       )}
@@ -199,7 +189,8 @@ const styles = StyleSheet.create({
   },
   genres: {
     fontSize: 16,
-    color: "grey",
+    color: "white",
+    marginBottom: 35,
   },
 });
 
